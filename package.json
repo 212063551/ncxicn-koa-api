@@ -1,0 +1,28 @@
+{
+	"name": "koa-foll",
+	"version": "1.0.0",
+	"main": "main.js",
+	"license": "MIT",
+	"scripts": {
+		"server": "nodemon main.js"
+	},
+	"dependencies": {
+		"@koa/router": "^10.1.1",
+		"bcryptjs": "^2.4.3",
+		"dotenv": "^16.0.0",
+		"ejs": "^3.1.7",
+		"jsonwebtoken": "^8.5.1",
+		"koa": "^2.13.4",
+		"koa-body": "^5.0.0",
+		"koa-static": "^5.0.0",
+		"koa-views": "^8.0.0",
+		"koa2-cors": "^2.0.6",
+		"mysql2": "^2.3.3",
+		"nodemailer": "^6.7.3",
+		"sequelize": "^6.19.0",
+		"ua-parser-js": "^1.0.2"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.15"
+	}
+}
