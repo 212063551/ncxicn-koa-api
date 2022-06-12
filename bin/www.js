@@ -12,7 +12,11 @@ app.use(cors());
 // 设置public为默认目录
 app.use(static('./public'));
 app.use(views('views', { extension: 'ejs' }));
-app.use(KoaBody());
+app.use(
+	KoaBody({
+		parsedMethods: ['POST', 'PUT', 'GET', 'DELETE'],
+	})
+);
 app.use(UserRouter.routes());
 app.on('error', errorHandler);
 
