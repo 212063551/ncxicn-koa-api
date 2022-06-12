@@ -33,7 +33,7 @@ const User = sql.define(
 		},
 		visitor: {
 			type: DataTypes.BOOLEAN,
-			defaultValue: false,
+			defaultValue: true,
 			comment: '访客权限',
 		},
 	},

@@ -1,8 +1,4 @@
 {
-	"name": "koa-foll",
-	"version": "1.0.0",
-	"main": "main.js",
-	"license": "MIT",
 	"scripts": {
 		"server": "nodemon main.js"
 	},
@@ -18,7 +14,6 @@
 		"koa-views": "^8.0.0",
 		"koa2-cors": "^2.0.6",
 		"mysql2": "^2.3.3",
-		"nodemailer": "^6.7.3",
 		"sequelize": "^6.19.0",
 		"ua-parser-js": "^1.0.2"
 	},

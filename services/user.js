@@ -49,6 +49,26 @@ class userService {
 		});
 		return res ? res.dataValues : null;
 	}
+	async changeInformationAPI({
+		id,
+		name,
+		account,
+		password,
+		admin,
+		email,
+		visitor,
+	}) {
+		const whereOpt = { id };
+		const newUser = {};
+		name && Object.assign(newUser, { name });
+		account && Object.assign(newUser, { account });
+		password && Object.assign(newUser, { password });
+		admin && Object.assign(newUser, { admin });
+		visitor && Object.assign(newUser, { visitor });
+		email && Object.assign(newUser, { email });
+		const res = await User.update(newUser, { where: whereOpt });
+		return res[0] > 0 ? true : false;
+	}
 }
 
 module.exports = new userService();

@@ -11,6 +11,7 @@ const sql = new Sequelize(MYSQL_USER, MYSQL_USER, MYSQL_PWD, {
 	dialectOptions: {
 		dateStrings: true,
 		typeCast: true,
+
 		pool: {
 			max: 10, //连接池中最大连接数量
 			min: 0, //连接池中最小连接数量
