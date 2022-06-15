@@ -2,6 +2,11 @@ const User = require('../models/user');
 
 class userService {
 	async registerAPI({ name, account, password, admin, email, visitor }) {
+		if (admin !== undefined && visitor == undefined) {
+			if (admin == true) {
+				visitor = false;
+			}
+		}
 		const res = await User.create({
 			name,
 			account,
@@ -12,12 +17,11 @@ class userService {
 		});
 		return res;
 	}
-	async loginAPI({}) {}
-	async cpwdAPI({}) {}
-	async accountDeleteAPI({}) {}
-	/*
-	 * Check whether the user exists
-	 */
+	async accountDeleteAPI({ id }) {
+		const res = await User.findByPk(id);
+		if (res) await res.destroy();
+		return res.dataValues;
+	}
 	async uesrExistenceAPI({
 		id,
 		name,
@@ -67,7 +71,12 @@ class userService {
 		visitor && Object.assign(newUser, { visitor });
 		email && Object.assign(newUser, { email });
 		const res = await User.update(newUser, { where: whereOpt });
+		console.log(newUser);
 		return res[0] > 0 ? true : false;
+	}
+	async usersAPI() {
+		const res = await User.findAll();
+		return res;
 	}
 }
 

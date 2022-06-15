@@ -2,27 +2,28 @@ const Router = require('@koa/router');
 
 const router = new Router({ prefix: '/' });
 
-const { register, login, cpwd, accountDelete } = require('../controllers/user');
+const {
+	register,
+	login,
+	cpwd,
+	accountDelete,
+	users,
+} = require('../controllers/user');
 const {
 	IncomingCheck,
-	Btfd,
-	uesrExistence,
+	AuthorityJudge,
 	crpytPassword,
-	verifyLogin,
+	Existential,
 	auth,
-	NewPwdA,
+	verifyLogin,
+	ToClosePermissions,
 } = require('../middlewares/user');
 
-router.post(
-	'register',
-	IncomingCheck,
-	Btfd,
-	uesrExistence,
-	crpytPassword,
-	register
-);
-router.post('login', verifyLogin, login);
-router.put('cpwd', auth, NewPwdA, cpwd);
-router.delete('accountDelete', accountDelete);
+// 查找全部用户
+router.get('users', auth, AuthorityJudge, users);
+router.post('register', IncomingCheck, Existential, crpytPassword, register);
+router.post('login', IncomingCheck, verifyLogin, login);
+router.put('cpwd', auth, IncomingCheck, crpytPassword, cpwd);
+router.delete('accountDelete', auth, AuthorityJudge, accountDelete);
 
 module.exports = router;

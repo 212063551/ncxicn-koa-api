@@ -3,173 +3,94 @@ const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/config');
 const { uesrExistenceAPI } = require('../services/user');
 const {
-	BtfdError,
-	requiredFieldError,
-	IncorrectValueTypeError,
-	IncorrectValueLengthError,
-	uesrExistenceNameError,
-	uesrExistenceAccountError,
-	uesrExistenceEmailError,
-	uesrExistenceError,
+	IncomingCheckNameLthError,
+	IncomingCheckNameTypeError,
+	IncomingCheckAccountTypeError,
+	IncomingCheckPasswordTypeError,
+	IncomingCheckAdminTypeError,
+	IncomingCheckEmailTypeError,
+	IncomingCheckVisitorTypeError,
+	AccountNumberFormatError,
+	PasswordFormatError,
+	EmailFormatError,
 	tokenExpiredError,
 	invalidTokenError,
-	userAccountError,
+	ExistenceConflict,
+	ExistentialNameExistError,
+	ExistentialAcctionExistError,
+	ExistentialEmailExistError,
+	uesrExistenceError,
+	ExistentialNameNoExistError,
 	userPassWordError,
-	userEmailsError,
-	newPassWordError,
-	EmailError,
-	AccountChineseError,
-	passwordBlankError,
-	passwordChineseError,
-	passwordSpecialError,
-	passwordLowerError,
-	passwordNumeralError,
+	verifyLoginError,
+	ExistentialEmailNoExistError,
 	authorityManagementError,
 } = require('../constant/err.typs');
 
-const blank = /\s+/g;
-const lower = /^(?=.*[a-z])/;
-const majuscule = /^(?=.*[A-Z])/;
-const Chinese = /[\u4e00-\u9fa5]/;
-const char = /^(?=.*[!@#$%^&*?\(\)])/;
-const Mail =
-	/^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/;
-
 const IncomingCheck = async (ctx, next) => {
 	const { name, account, password, admin, email, visitor } = ctx.request.body;
-	/*
-	 * Restrict the type and length of incoming values，This is required value
-	 */
-	if (name == undefined) {
-		console.error('name为必传字段');
-		return ctx.app.emit('error', requiredFieldError, ctx);
-	} else {
-		if (typeof name != 'string') {
-			console.error('传入值类型错误');
-			return ctx.app.emit('error', IncorrectValueTypeError, ctx);
+	if (name !== undefined) {
+		if (typeof name !== 'string') {
+			console.error('用户名类型错误，非string类型');
+			return ctx.app.emit('error', IncomingCheckNameTypeError, ctx);
+		}
+		if (name.length > 15) {
+			console.error('用户名长度超出限制');
+			return ctx.app.emit('error', IncomingCheckNameLthError, ctx);
+		}
+	}
+	if (account !== undefined) {
+		if (typeof account !== 'string') {
+			console.error('账号类型错误，非string类型');
+			return ctx.app.emit('error', IncomingCheckAccountTypeError, ctx);
 		} else {
-			const Chinese = /[\u4e00-\u9fa5]/;
-			if (Chinese.test(name) == true) {
-				if (name.length > 8) {
-					console.error('传入字符长度出错');
-					return ctx.app.emit('error', IncorrectValueLengthError, ctx);
-				}
-			} else {
-				if (name.length > 14) {
-					console.error('传入字符长度出错');
-					return ctx.app.emit('error', IncorrectValueLengthError, ctx);
-				}
+			const AccountNumberFormat = /^[a-zA-Z][a-zA-Z0-9_]{3,15}$/g;
+			if (AccountNumberFormat.test(account) !== true) {
+				console.error('账号格式不合法');
+				return ctx.app.emit('error', AccountNumberFormatError, ctx);
 			}
 		}
 	}
-	if (account == undefined) {
-		console.error('account为必填字段');
-		return ctx.app.emit('error', requiredFieldError, ctx);
-	} else {
-		if (typeof account != 'string') {
-			console.error('传入值类型错误');
-			return ctx.app.emit('error', IncorrectValueTypeError, ctx);
+	if (password !== undefined) {
+		if (typeof password !== 'string') {
+			console.error('密码类型错误，非string类型');
+			return ctx.app.emit('error', IncomingCheckPasswordTypeError, ctx);
 		} else {
-			if (account.length < 8 || account.length > 14) {
-				console.error('传入字符长度出错');
-				return ctx.app.emit('error', IncorrectValueLengthError, ctx);
+			const PasswordFormat = /^[a-zA-Z]\w{5,17}$/g;
+			if (PasswordFormat.test(password) !== true) {
+				console.error('密码格式不合法');
+				return ctx.app.emit('error', PasswordFormatError, ctx);
 			}
 		}
 	}
-	if (password == undefined) {
-		console.error('password为必填字段');
-		return ctx.app.emit('error', requiredFieldError, ctx);
-	} else {
-		if (typeof password != 'string') {
-			console.error('传入值类型错误');
-			return ctx.app.emit('error', IncorrectValueTypeError, ctx);
+	if (admin !== undefined) {
+		if (admin !== false && admin !== true) {
+			console.log('管理员格式错误');
+		}
+	}
+	if (email !== undefined) {
+		if (typeof email !== 'string') {
+			console.error('邮箱类型错误，非string类型');
+			return ctx.app.emit('error', IncomingCheckEmailTypeError, ctx);
 		} else {
-			if (password.length < 8 || password.length > 14) {
-				console.error('传入字符长度出错');
-				return ctx.app.emit('error', IncorrectValueLengthError, ctx);
+			const Email =
+				/^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/;
+			if (Email.test(email) !== true) {
+				console.error('邮箱格式不合法');
+				return ctx.app.emit('error', EmailFormatError, ctx);
 			}
 		}
 	}
-	if (email == undefined) {
-		console.error('email为必填字段');
-		return ctx.app.emit('error', requiredFieldError, ctx);
-	} else {
-		if (typeof email != 'string') {
-			console.error('传入值类型错误');
-			return ctx.app.emit('error', IncorrectValueTypeError, ctx);
+	if (visitor !== undefined) {
+		if (visitor !== false && visitor !== true) {
+			console.log('访客格式错误');
 		}
 	}
-	/*
-	 * This is optional，The default generated
-	 */
-	if (admin) {
-		if (typeof admin != 'number') {
-			console.error('传入值类型错误');
-			return ctx.app.emit('error', IncorrectValueTypeError, ctx);
+	if (admin !== undefined || visitor !== undefined) {
+		if (admin == true && visitor == true) {
+			console.error('管理员与访客不能同时存在');
+			return ctx.app.emit('error', ExistenceConflict, ctx);
 		}
-	}
-	if (visitor) {
-		if (typeof visitor != 'number') {
-			console.error('传入值类型错误');
-			return ctx.app.emit('error', IncorrectValueTypeError, ctx);
-		}
-	}
-	await next();
-};
-const Btfd = async (ctx, next) => {
-	const { account, password, email } = ctx.request.body;
-	if (!Mail.test(email)) {
-		console.log('邮件格式错误');
-		return ctx.app.emit('error', EmailError, ctx);
-	}
-	if (Chinese.test(account)) {
-		console.log('账号中不能存在中文');
-		return ctx.app.emit('error', AccountChineseError, ctx);
-	}
-	if (blank.test(password)) {
-		console.log('密码不能含有空格');
-		ctx.app.emit('error', passwordBlankError, ctx);
-		return;
-	}
-	if (Chinese.test(password)) {
-		console.log('密码中不能存在中文');
-		return ctx.app.emit('error', passwordChineseError, ctx);
-	}
-	if (!char.test(password)) {
-		console.log('密码必须要含有一个特殊字符');
-		return ctx.app.emit('error', passwordSpecialError, ctx);
-	}
-	if (!lower.test(password)) {
-		console.log('密码必须要含有一个小写字母');
-		return ctx.app.emit('error', passwordLowerError, ctx);
-	}
-	if (!majuscule.test(password)) {
-		console.log('密码必须要含有一个大写字母');
-		return ctx.app.emit('error', passwordNumeralError, ctx);
-	}
-	await next();
-};
-const uesrExistence = async (ctx, next) => {
-	const { name, account, email } = ctx.request.body;
-	try {
-		const names = await uesrExistenceAPI({ name });
-		const accounts = await uesrExistenceAPI({ account });
-		const emails = await uesrExistenceAPI({ email });
-		if (names) {
-			console.error('用户名已存在');
-			return ctx.app.emit('error', uesrExistenceNameError, ctx);
-		}
-		if (accounts) {
-			console.error('账户已存在');
-			return ctx.app.emit('error', uesrExistenceAccountError, ctx);
-		}
-		if (emails) {
-			console.error('邮箱已被注册');
-			return ctx.app.emit('error', uesrExistenceEmailError, ctx);
-		}
-	} catch (error) {
-		console.error('信息获取失败', error);
-		return ctx.app.emit('error', uesrExistenceError, ctx);
 	}
 	await next();
 };
@@ -198,95 +119,109 @@ const auth = async (ctx, next) => {
 	}
 	await next();
 };
-const verifyLogin = async (ctx, next) => {
-	const { account, password, email } = ctx.request.body;
-	try {
-		const res = await uesrExistenceAPI({ account });
-		const emails = await uesrExistenceAPI({ email });
-		if (email != undefined) {
-			if (typeof email != 'string') {
-				console.error('传入值类型错误');
-				return ctx.app.emit('error', IncorrectValueTypeError, ctx);
-			} else {
-				if (!Mail.test(email)) {
-					console.log('邮件格式错误');
-					return ctx.app.emit('error', BtfdError, ctx);
-				} else {
-					if (!emails) {
-						console.error('邮箱不存在', { email });
-						return ctx.app.emit('error', userEmailsError, ctx);
-					}
-				}
+const Existential = async (ctx, next) => {
+	const { name, account, email } = ctx.request.body;
+	if (name !== undefined) {
+		try {
+			const res = await uesrExistenceAPI({ name });
+			if (res) {
+				console.error('用户已注册');
+				return ctx.app.emit('error', ExistentialNameExistError, ctx);
 			}
+		} catch (error) {
+			console.error(error);
+			return ctx.app.emit('error', uesrExistenceError, ctx);
 		}
-		if (account != undefined) {
-			if (typeof account != 'string') {
-				console.error('传入值类型错误');
-				return ctx.app.emit('error', IncorrectValueTypeError, ctx);
+	}
+	if (account !== undefined) {
+		try {
+			const res = await uesrExistenceAPI({ account });
+			if (res) {
+				console.error('账号已注册');
+				return ctx.app.emit('error', ExistentialAcctionExistError, ctx);
 			} else {
-				if (account.length < 8 || account.length > 14) {
-					console.error('传入字符长度出错');
-					return ctx.app.emit('error', IncorrectValueLengthError, ctx);
-				} else {
-					if (!res) {
-						console.error('账号不存在', { account });
-						return ctx.app.emit('error', userAccountError, ctx);
-					}
-				}
 			}
+		} catch (error) {
+			console.error(error);
+			return ctx.app.emit('error', uesrExistenceError, ctx);
 		}
-		if (!bcrypt.compareSync(password, res.password)) {
-			console.error('密码错误');
-			return ctx.app.emit('error', userPassWordError, ctx);
+	}
+	if (email !== undefined) {
+		try {
+			const res = await uesrExistenceAPI({ email });
+			if (res) {
+				console.error('邮箱已注册');
+				return ctx.app.emit('error', ExistentialEmailExistError, ctx);
+			}
+		} catch (error) {
+			console.error(error);
+			return ctx.app.emit('error', uesrExistenceError, ctx);
 		}
-	} catch (err) {
-		console.error('信息获取失败', error);
-		return ctx.app.emit('error', uesrExistenceError, ctx);
 	}
 	await next();
 };
-const NewPwdA = async (ctx, next) => {
-	const { password, Newpassword } = ctx.request.body;
-	const account = ctx.state.user.account;
-	const res = await uesrExistenceAPI({ account });
-	if (bcrypt.compareSync(password, res.password) !== true) {
-		console.error('原密码错误');
-		return ctx.app.emit('error', newPassWordError, ctx);
+const AuthorityJudge = async (ctx, next) => {
+	const { admin } = ctx.state.user;
+	if (admin == true) {
+		await next();
+	} else {
+		return ctx.app.emit('error', authorityManagementError, ctx);
 	}
-	if (blank.test(Newpassword)) {
-		console.log('密码不能含有空格');
-		ctx.app.emit('error', passwordBlankError, ctx);
-		return;
+};
+const ToClosePermissions = async (ctx, next) => {
+	const { admin, visitor } = ctx.state.user;
+	if (admin == false && visitor == false) {
+		await next();
 	}
-	if (Chinese.test(Newpassword)) {
-		console.log('密码中不能存在中文');
-		return ctx.app.emit('error', passwordChineseError, ctx);
-	}
-	if (!char.test(Newpassword)) {
-		console.log('密码必须要含有一个特殊字符');
-		return ctx.app.emit('error', passwordSpecialError, ctx);
-	}
-	if (!lower.test(Newpassword)) {
-		console.log('密码必须要含有一个小写字母');
-		return ctx.app.emit('error', passwordLowerError, ctx);
-	}
-	if (!majuscule.test(Newpassword)) {
-		console.log('密码必须要含有一个大写字母');
-		return ctx.app.emit('error', passwordNumeralError, ctx);
-	}
-	if (password.length < 8 || password.length > 14) {
-		console.error('传入字符长度出错');
-		return ctx.app.emit('error', IncorrectValueLengthError, ctx);
+	return ctx.app.emit('error', authorityManagementError, ctx);
+};
+const verifyLogin = async (ctx, next) => {
+	const { account, password, email } = ctx.request.body;
+	try {
+		if (account !== undefined) {
+			const res = await uesrExistenceAPI({ account });
+			if (!res) {
+				console.error('账号不存在', { account });
+				return ctx.app.emit('error', ExistentialNameNoExistError, ctx);
+			} else {
+				if (res.account !== account) {
+					console.error('用户与密码不匹配');
+				} else {
+					ctx.state.password = res.password;
+				}
+			}
+		}
+		if (email !== undefined) {
+			const res = await uesrExistenceAPI({ email });
+
+			if (!res) {
+				console.error('邮箱不存在', { account });
+				return ctx.app.emit('error', ExistentialEmailNoExistError, ctx);
+			} else {
+				if (res.email !== email) {
+					console.error('用户与密码不匹配');
+				} else {
+					ctx.state.password = res.password;
+				}
+			}
+		}
+		if (!bcrypt.compareSync(password, ctx.state.password)) {
+			console.log('密码错误！');
+			return ctx.app.emit('error', userPassWordError, ctx);
+		}
+	} catch (err) {
+		console.error('用户登录失败', error);
+		return ctx.app.emit('error', verifyLoginError, ctx);
 	}
 	await next();
 };
 
 module.exports = {
 	IncomingCheck,
-	Btfd,
-	uesrExistence,
 	crpytPassword,
-	verifyLogin,
+	Existential,
 	auth,
-	NewPwdA,
+	AuthorityJudge,
+	verifyLogin,
+	ToClosePermissions,
 };
